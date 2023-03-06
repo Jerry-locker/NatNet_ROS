@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs 
   tf2 
   tf2_ros
+  geometry_msgs
+  tf
 )
 
 # NATNET library

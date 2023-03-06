@@ -65,6 +65,7 @@ sServerDescription g_serverDescription;
 
 ros::Publisher raw_pub {};
 ros::Publisher point_pub {};
+ros::Publisher tfs_pub {};
 //tf2_ros::TransformBroadcaster rbBroadcaster;
 geometry_msgs::TransformStamped tf_msg;
 sensor_msgs::PointCloud2 pc_msg;
@@ -79,6 +80,7 @@ int main( int argc, char* argv[] )
     ros::NodeHandle nh;
     raw_pub = nh.advertise<std_msgs::String>("natnet_raw_data", 1000);
     point_pub = nh.advertise<sensor_msgs::PointCloud2>("natnet_points", 1000);
+    tfs_pub = nh.advertise<geometry_msgs::TransformStamped>("marker_pose_in_optitrack", 1000);
 
     // print version info
     unsigned char ver[4];
@@ -612,7 +614,7 @@ void NATNET_CALLCONV DataHandler(sFrameOfMocapData* data, void* pUserData)
 
         tf_msg.header.frame_id = "world";
         tf_msg.header.stamp = ros::Time::now();
-        tf_msg.child_frame_id = std::to_string(data->RigidBodies[i].ID);
+        tf_msg.child_frame_id = std::to_string(data->RigidBodies[i].ID);  //保证视野中仅有一个rigid
         tf_msg.header.seq = data->iFrame;
         tf_msg.transform.translation.x = data->RigidBodies[i].x;
         tf_msg.transform.translation.y = data->RigidBodies[i].y;
@@ -622,6 +624,8 @@ void NATNET_CALLCONV DataHandler(sFrameOfMocapData* data, void* pUserData)
         tf_msg.transform.rotation.z = data->RigidBodies[i].qz;
         tf_msg.transform.rotation.w = data->RigidBodies[i].qw;
         br.sendTransform(tf_msg);
+
+        tfs_pub.publish(tf_msg);  //新增tfs_pub
     }
 //    // Skeletons
 //    printf("Skeletons [Count=%d]\n", data->nSkeletons);
